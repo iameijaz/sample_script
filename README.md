@@ -25,7 +25,7 @@
 
 2. **Clone the Repository**: Clone this repository to your local machine using the following command:
     ```sh
-    git clone <repository-url>
+    git clone https://github.com/iameijaz/sample_script.git
     cd sample_script
     ```
 
