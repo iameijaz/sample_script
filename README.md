@@ -15,7 +15,6 @@
 
 ## Part 4 (Bonus): Streams
 
-- [bonus_rxjs.js](./solution/bonus_rxjs.js) - RxJS
 - [bonus_stream.js](./solution/bonus_stream.js) - Stream
 
 
