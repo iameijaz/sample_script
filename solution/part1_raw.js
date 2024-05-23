@@ -1,17 +1,73 @@
-/**
- * 
- * This is RAW NODE JS
- */
-
-
 const http = require('http');
 const https = require('https');
 const url = require('url');
-const {getAddressesFromUrl,getTitle,fetchHTML} =require('./myFunctions');
 
+function fetchHTML(address, callback) {
+    https.get(address, (response) => {
+        let data = '';
+        response.on('data', (chunk) => data += chunk);
+        response.on('end', () => {
+            if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+                // Handle redirect
+                fetchHTML(response.headers.location, callback);
+            } else {
+                callback(null, data);
+            }
+        });
+    }).on('error', (err) => {
+        // Retry with HTTP
+        const httpAddress = address.replace('https://', 'http://');
+        http.get(httpAddress, (response) => {
+            let data = '';
+            response.on('data', (chunk) => data += chunk);
+            response.on('end', () => callback(null, data));
+        }).on('error', (err) => callback(err));
+    });
+}
 
+function getTitle(html) {
+    const match = html.match(/<title>([^<]*)<\/title>/); //regex
+    return match ? match[1] : 'No Title Found';
+}
 
+function getAddressesFromUrl(urlString) {
+    const parsedUrl = url.parse(urlString, true);
+    let addresses = parsedUrl.query.address;
+    if (!Array.isArray(addresses)) {
+        addresses = [addresses];
+    }
+    return addresses.map(address => {
+        if (!address.startsWith('http://') && !address.startsWith('https://')) {
+            return `https://${address}`; // Ensure protocol is specified
+        }
+        return address;
+    });
+}
 
+function buildHTMLResponse(addresses, titles) {
+    let htmlResponse = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Webpage Titles</title>
+        </head>
+        <body>
+            <h1>Following are the titles of given websites:</h1>
+            <ul>
+    `;
+
+    addresses.forEach((address, index) => {
+        htmlResponse += `<li>${address} - ${titles[index]}</li>`;
+    });
+
+    htmlResponse += `
+            </ul>
+            </body>
+            </html>
+        `;
+    
+    return htmlResponse;
+}
 
 const server = http.createServer((req, res) => {
     if (req.url.startsWith("/I/want/title/")) {
@@ -22,28 +78,16 @@ const server = http.createServer((req, res) => {
             return;
         }
         
-        let htmlResponse = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Webpage Titles</title>
-            </head>
-            <body>
-                <h1>Following are the titles of given websites:</h1>
-                <ul>
-        `;
-
         let completedRequests = 0;
-        addresses.forEach((address) => {
+        const titles = [];
+
+        addresses.forEach((address, index) => {
             fetchHTML(address, (err, html) => {
                 const title = err ? 'NO RESPONSE' : getTitle(html);
-                htmlResponse += `<li>${address} - ${title}</li>`;
-                if (++completedRequests === addresses.length) {
-                    htmlResponse += `
-                        </ul>
-                        </body>
-                        </html>
-                    `;
+                titles[index] = title;
+                completedRequests++;
+                if (completedRequests === addresses.length) {
+                    const htmlResponse = buildHTMLResponse(addresses, titles);
                     res.writeHead(200, { 'Content-Type': 'text/html' });
                     res.end(htmlResponse);
                 }
@@ -55,5 +99,4 @@ const server = http.createServer((req, res) => {
     }
 });
 
-server.listen(3000, () => console.log("Server is Listening on Port 3000\n http://localhost:3000"));
-
+server.listen(3000, () => console.log("Server is Listening on Port 3000"));

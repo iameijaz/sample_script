@@ -5,10 +5,9 @@ const {getAddressesFromUrl,getTitle,fetchHTML_promise} =require('./myFunctions')
 
 
 
-
 const server = http.createServer((req, res) => {
     if (req.url.startsWith("/I/want/title/")) {
-        const addresses = getAddressesFromString(req.url);
+        const addresses = getAddressesFromUrl(req.url);
         if (addresses.length === 0) {
             res.writeHead(400);
             res.end("<h1>NO Parameters Provided</h1>");
@@ -49,5 +48,4 @@ const server = http.createServer((req, res) => {
     }
 });
 
-server.listen(3000, () => console.log("Server is Listening on Port 3000\n http://localhost:3000"));
-
+server.listen(3000, () => console.log("Server is Listening on Port 3000"));

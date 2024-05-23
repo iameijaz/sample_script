@@ -1,11 +1,8 @@
 const http = require('http');
 const https = require('https');
 const url = require('url');
-const { Transform } = require('stream');
-const {fetchHTML_promise,getAddressesFromUrl,getTitle} =require('./myFunctions');
 
-
-
+const {getAddressesFromUrl,getTitle,fetchHTML_promise} =require('./myFunctions');
 
 const server = http.createServer((req, res) => {
     if (req.url.startsWith("/I/want/title/")) {
@@ -60,3 +57,4 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(3000, () => console.log("Server is Listening on Port 3000\n http://localhost:3000"));
+

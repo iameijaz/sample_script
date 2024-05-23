@@ -1,7 +1,7 @@
 const http = require('http');
 const step = require('step');
 const url = require('url');
-const {getAddressesFromUrl,getTitle} =require('./myFunctions');
+const {getAddressesFromUrl,getTitle,fetchHTML} =require('./myFunctions');
 
 
 const server = http.createServer((req, res) => {
